@@ -50,11 +50,12 @@ class Expression:
                         stack.append(token)
                         continue
                     if stack[-1].priority.value >= token.priority.value:
-                        while True:
-                            if not stack or stack[-1].type == Type.LEFT_BRACKET:
-                                break
-                            if token.priority.value <= stack[-1].priority.value:
-                                queue.put(stack.pop())
+                        while (
+                            stack
+                            and token.priority.value <= stack[-1].priority.value
+                            and stack[-1].type != Type.LEFT_BRACKET
+                        ):
+                            queue.put(stack.pop())
 
                         stack.append(token)
                         continue
