@@ -1,3 +1,4 @@
+from copy import copy
 from decimal import DivisionByZero
 from typing import List, Union
 from helpers import Lexer
@@ -12,7 +13,7 @@ from queue import Queue
 from math import cos, exp, log, log10, sin, tan
 
 
-funcs = {
+pos_funcs = {
     "sin": sin,
     "cos": cos,
     "tg": tan,
@@ -21,8 +22,14 @@ funcs = {
     "ln": log,
     "exp": exp,
 }
+
+funcs = copy(pos_funcs)
 # add negative versions
-funcs.update({f"-{k}": lambda val: -v(val) for k, v in funcs.items()})
+# funcs.update({f"-{k}": lambda _: print(v) for k, v in funcs.items()})
+for fn, n in pos_funcs.items():
+    funcs[f"-{fn}"] = lambda value: -1 * n(value)
+print(funcs.items())
+print(funcs["-cos"](3.14))
 
 
 class Expression:
@@ -52,8 +59,8 @@ class Expression:
                     if stack[-1].priority.value >= token.priority.value:
                         while (
                             stack
-                            and token.priority.value <= stack[-1].priority.value
                             and stack[-1].type != Type.LEFT_BRACKET
+                            and token.priority.value <= stack[-1].priority.value
                         ):
                             queue.put(stack.pop())
 
@@ -129,35 +136,73 @@ class Expression:
             return None
 
     def find_root(self, a: Union[int, float], b: Union[int, float]):
-        step = 1
+        # step = 1
+        # a = min(a, b)
+        # b = max(a, b)
 
-        while 1:
-            a1 = self.calculate(Number(a))
-            b1 = self.calculate(Number(b))
+        # while 1:
+        #     a1 = self.calculate(Number(a))
+        #     b1 = self.calculate(Number(b))
 
-            if a1 == b1 or a1 is None or b1 is None:
-                return None
+        #     if a1 == b1 or a1 is None or b1 is None:
+        #         return None
 
-            x = a - (b - a) * a1 / (b1 - a1)
+        #     x = a - (b - a) * a1 / (b1 - a1)
 
-            a = b
-            b = x
+        #     a = b
+        #     b = x
 
-            print(step, x)
+        #     print(step, x)
 
-            value = self.calculate(Number(x))
-            if value is None:
-                return None
+        #     value = self.calculate(Number(x))
+        #     if value is None:
+        #         return None
 
-            if abs(value) <= EPSILON:
-                break
+        #     if abs(value) <= EPSILON:
+        #         break
 
-            if step >= STEPS:
-                return None
+        #     if step >= STEPS:
+        #         return None
 
-            step += 1
+        #     step += 1
 
-        return x
+        # return x
+        # x = b - (
+        #     self.calculate(Number(b))
+        #     / (self.calculate(Number(b)) - self.calculate(Number(a))
+        # ) * (b - a)
+        # x = b - (
+        #     self.calculate(Number(b))
+        #     / (self.calculate(Number(b)) - self.calculate(Number(a)))
+        # ) * (b - a)
+
+        # while abs(self.calculate(Number(x))) > EPSILON:
+        #     print(x)
+        #     x = b - (
+        #         self.calculate(Number(b))
+        #         / (self.calculate(Number(b)) - self.calculate(Number(a)))
+        #     ) * (b - a)
+        #     if abs(a - x) < abs(b - x):
+        #         a = x
+        #     else:
+        #         b = x
+        x = a
+        # print((self.calculate(Number(a)) * self.calculate(Number(b))) > 0)
+        if (self.calculate(Number(a)) * self.calculate(Number(b))) > 0:
+            return None
+        else:
+            while (
+                self.calculate(Number(a)) * self.calculate(Number(b)) < 0
+                and abs(self.calculate(Number(x))) > EPSILON
+            ):
+                k = (self.calculate(Number(a)) - self.calculate(Number(b))) / (a - b)
+                b = self.calculate(Number(a)) - k * a
+                x = -b / k
+                if (self.calculate(Number(x)) * self.calculate(Number(a))) > 0:
+                    a = x
+                else:
+                    b = x
+            return x
 
     def simpson(self, a: Union[int, float], b: Union[int, float]):
         dx = (b - a) / STEPS

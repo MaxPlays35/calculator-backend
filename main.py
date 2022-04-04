@@ -13,9 +13,14 @@ def calc():
     expression = Expression(request.json["expression"])
     _, error, index = expression.parse()
     if error:
-        return jsonify({"answer": None, "error": error, "index": index})
+        return jsonify(
+            {"answer": None, "error": error, "index": index, "errorText": ""}
+        )
     expression.translate()
-    answer = expression.calculate()
+    try:
+        answer = expression.calculate()
+    except Exception as e:
+        return jsonify({"answer": None, "error": True, "index": 0, "errorText": str(e)})
     return jsonify({"answer": answer, "error": False, "index": 0})
 
 
@@ -25,10 +30,24 @@ def solve():
     expression = Expression(request.json["expression"])
     _, error, index = expression.parse()
     if error:
-        return jsonify({"answer": None, "error": error, "index": index})
+        return jsonify(
+            {"answer": None, "error": error, "index": index, "errorText": ""}
+        )
     print(expression.translate())
-    a, b = request.json["start"], request.json["end"]
-    root = expression.find_root(a, b)
+    a, b = float(request.json["start"]), float(request.json["end"])
+    try:
+        root = expression.find_root(a, b)
+        if not root:
+            return jsonify(
+                {
+                    "answer": None,
+                    "error": True,
+                    "index": 0,
+                    "errorText": "Cannot find root",
+                }
+            )
+    except Exception as e:
+        return jsonify({"answer": None, "error": True, "index": 0, "errorText": str(e)})
     return jsonify({"answer": root, "error": False, "index": 0})
 
 
@@ -38,12 +57,17 @@ def integral():
     expression = Expression(request.json["expression"])
     _, error, index = expression.parse()
     if error:
-        return jsonify({"answer": None, "error": error, "index": index})
+        return jsonify(
+            {"answer": None, "error": error, "index": index, "errorText": ""}
+        )
     print(expression.translate())
-    a, b = request.json["start"], request.json["end"]
-    result = expression.simpson(a, b)
+    a, b = float(request.json["start"]), float(request.json["end"])
+    try:
+        result = expression.simpson(a, b)
+    except Exception as e:
+        return jsonify({"answer": None, "error": True, "index": 0, "errorText": str(e)})
     return jsonify({"answer": str(result), "error": False, "index": 0})
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0")
+    app.run("0.0.0.0", 10000)
