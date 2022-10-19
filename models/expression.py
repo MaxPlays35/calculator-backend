@@ -75,9 +75,10 @@ class Expression:
                 continue
 
             if token.type == Type.RIGHT_BRACKET:
-                while stack[-1].type != Type.LEFT_BRACKET:
+                while stack and stack[-1].type != Type.LEFT_BRACKET:
                     queue.put(stack.pop())
-                stack.pop()
+                if stack:
+                    stack.pop()
                 if stack and stack[-1].type != Type.OPERATOR:
                     queue.put(stack.pop())
         for _ in range(len(stack)):
